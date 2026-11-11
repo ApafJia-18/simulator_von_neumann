@@ -1,0 +1,704 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Von Neumann Lab</title>
+<style>
+:root{
+ --purple:#8876b8;--dark:#62547f;--ink:#514765;
+ --cream:#fffaf5;--pink:#ffe0e9;--blue:#dff2ff;
+ --mint:#e0f7eb;--yellow:#fff1bd;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:
+ radial-gradient(circle at 8% 5%,#f5e7ff,transparent 28%),
+ radial-gradient(circle at 95% 20%,#e0f7ef,transparent 25%),
+ #fffaf7;
+ color:var(--ink);font-family:Arial,sans-serif;
+}
+button,input,select{font:inherit}
+header{
+ background:linear-gradient(110deg,#7866a7,#a18dcc);
+ color:white;padding:12px 5%;
+ display:flex;justify-content:space-between;align-items:center;
+}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-icon{
+ width:40px;height:40px;display:grid;place-items:center;
+ background:#c0b2e8;border-radius:14px;font-size:22px;
+ box-shadow:0 4px 0 #68588f;
+}
+.brand h1{font-size:21px;margin:0}
+.brand small{font-size:10px;color:#f1eaff}
+.header-tag{font-size:10px;color:#f3eaff}
+main{max-width:1250px;margin:auto;padding:20px}
+.hero{
+ border-radius:22px;padding:19px 23px;
+ background:linear-gradient(110deg,#f4eaff,#e7f5ff,#e4f8ef);
+ border:1px solid #eee2fa;display:flex;
+ justify-content:space-between;align-items:center;gap:15px;
+}
+.hero h2{font-size:clamp(23px,3vw,32px);color:#76649e;margin:0 0 5px}
+.hero p{font-size:12px;line-height:1.6;color:#77718d;max-width:780px;margin:0}
+.hero .art{font-size:47px}
+.section-title{font-size:19px;color:#76649e;margin:20px 0 10px}
+.scenarios{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.scenario{
+ text-align:left;background:white;border:1px solid #eee5f1;
+ border-radius:15px;padding:11px;color:var(--ink);
+ min-height:82px;cursor:pointer;transition:.2s;
+}
+.scenario:hover{transform:translateY(-2px)}
+.scenario.active{background:#f1eaff;border:2px solid #b9a5ed}
+.scenario .emoji{font-size:22px;display:block;margin-bottom:4px}
+.scenario b{font-size:11px;display:block}
+.scenario small{font-size:9px;color:#9991a9}
+.panel{
+ background:white;border:1px solid #eee5f1;border-radius:18px;
+ padding:15px;margin-top:12px;box-shadow:0 5px 15px #9b86b310;
+}
+.panel h3{font-size:17px;color:#76649e;margin:0 0 11px}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.field label{display:block;font-size:10px;font-weight:700;margin-bottom:5px}
+.field input,.field select{
+ width:100%;padding:9px;border:1px solid #e6deed;
+ border-radius:10px;background:#fffcff;color:var(--ink);font-size:12px;
+}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.btn{
+ border:0;border-radius:11px;padding:9px 13px;
+ font-size:11px;font-weight:700;cursor:pointer;
+}
+.primary{background:#8876ba;color:white;box-shadow:0 3px 0 #685a92}
+.soft{background:#f1ebfa;color:#6c5d91}
+.peach{background:#fff0e8;color:#bd765e}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.lab{
+ margin-top:15px;background:linear-gradient(145deg,#78699f,#9d8fc4);
+ border-radius:22px;padding:16px;color:white;
+ box-shadow:0 10px 25px #8775a52a;
+}
+.lab-head{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:10px;margin-bottom:12px;
+}
+.lab-head h3{font-size:18px;margin:0}
+.lab-head p{font-size:10px;color:#eee6ff;margin:4px 0 0}
+.sound{
+ border:1px solid #c6b9e4;background:#75669f;color:white;
+ border-radius:10px;padding:7px 10px;font-size:10px;cursor:pointer;
+}
+.sim-layout{
+ display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.85fr);
+ gap:13px;align-items:stretch;
+}
+.diagram-column{
+ min-width:0;background:radial-gradient(circle at 50% 40%,#e6e0fa,#c9c0e8 75%);
+ border:2px solid #d8cafa;border-radius:17px;padding:7px;
+ display:flex;flex-direction:column;justify-content:center;
+}
+.diagram-wrap{width:100%;overflow:hidden}
+svg.diagram{width:100%;height:auto;display:block}
+.diagram .route{
+ fill:none;stroke:#fff;stroke-width:3.5;
+ stroke-linecap:round;stroke-linejoin:round;
+ marker-end:url(#arrow);
+}
+.diagram .route.active{
+ stroke:#fff19b;stroke-width:5;
+ stroke-dasharray:9 7;
+ filter:drop-shadow(0 0 5px #fff19b);
+ animation:dash .45s linear infinite;
+}
+@keyframes dash{to{stroke-dashoffset:-16}}
+.node{transition:filter .25s}
+.node.active{filter:drop-shadow(0 0 9px #fff2a4)}
+.node.active .base{stroke:#fff3a1;stroke-width:4}
+.node .base{stroke:white;stroke-width:1.5}
+.node text{font-family:Arial,sans-serif;pointer-events:none}
+.node .heading{font-weight:800;font-size:18px;fill:#383047}
+.node .sub{font-size:10px;font-weight:600;fill:#5d5470}
+.traveller{font-size:24px;pointer-events:none;filter:drop-shadow(0 2px 2px #78679b)}
+.diagram-note{
+ display:flex;justify-content:center;gap:6px;flex-wrap:wrap;
+ font-size:9px;color:#fff;margin:7px 2px 0;
+}
+.diagram-note span{background:#75669f;padding:5px 8px;border-radius:8px}
+.explain-column{
+ background:#75669f;border:1px solid #aa9bd0;
+ border-radius:17px;padding:15px;
+ display:flex;flex-direction:column;min-height:100%;
+}
+.current-label{
+ display:inline-flex;align-self:flex-start;
+ background:#fff0bb;color:#65517d;border-radius:8px;
+ padding:5px 9px;font-size:9px;font-weight:800;
+}
+.explain-column h4{font-size:18px;margin:12px 0 7px;color:white}
+.explain-column .narration{font-size:12px;line-height:1.75;color:#f5efff;margin:0}
+.mini-illustration{
+ margin:auto auto 0;padding-top:14px;text-align:center;
+ font-size:34px;letter-spacing:7px;animation:bob 2.2s ease-in-out infinite;
+}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.explain-hint{font-size:9px;color:#e6dcfa;text-align:center;margin-top:5px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat{background:#75669f;border:1px solid #aa9bd0;padding:9px;border-radius:12px}
+.stat small{font-size:9px;color:#eee6ff}
+.stat b{display:block;font-size:14px;margin-top:3px}
+.stages{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.stages span{
+ padding:6px 8px;border-radius:8px;background:#75669f;
+ border:1px solid #aa9bd0;font-size:9px;color:#eee6ff;
+}
+.stages span.active{background:#fff0bb;color:#65517d;font-weight:800}
+.controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}
+.controls .speed{margin-left:auto;font-size:10px;display:flex;gap:7px;align-items:center}
+.speed input{width:75px;accent-color:#ffe19a}
+.result{
+ display:none;background:#e8fff3;color:#176a4e;
+ padding:10px;border-radius:11px;margin-top:9px;font-size:11px;
+}
+.result.show{display:block}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:9px 2px 0;font-size:9px;color:#f5edff}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend i{width:8px;height:8px;border-radius:50%;background:#fff19b;display:inline-block}
+.knowledge{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.knowledge article{
+ background:white;border:1px solid #eee5f1;border-radius:14px;
+ padding:12px;box-shadow:0 5px 15px #9b86b310;
+}
+.knowledge b{font-size:11px;color:#76649e}
+.knowledge p{font-size:10px;color:#77718d;line-height:1.6;margin:6px 0 0}
+footer{text-align:center;color:#a39ab5;font-size:9px;padding:20px}
+@media(max-width:760px){
+ main{padding:15px 12px}
+ .sim-layout{grid-template-columns:1fr}
+ .explain-column{min-height:190px}
+ .scenarios{grid-template-columns:repeat(2,1fr)}
+ .knowledge{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+ .fields{grid-template-columns:1fr 1fr}
+ .hero .art{font-size:34px}
+ .controls .speed{margin-left:0}
+ .knowledge{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="brand">
+  <div class="brand-icon">🧩</div>
+  <div><h1>Von Neumann Lab</h1><small>Interactive Computer Architecture</small></div>
+ </div>
+ <div class="header-tag">INFORMATIKA · KELAS X SMK</div>
+</header>
+
+<main>
+<section class="hero">
+ <div>
+  <h2>Let's Explore the Computer! ✨</h2>
+  <p>Bagaimana komputer menerima data, memproses instruksi, dan menghasilkan informasi? Yuk, ikuti perjalanan data di dalam arsitektur Von Neumann!</p>
+ </div>
+ <div class="art">💻</div>
+</section>
+
+<h3 class="section-title">Pilih studi kasus 🌷</h3>
+<div class="scenarios">
+ <button class="scenario active" data-case="math"><span class="emoji">➕</span><b>Operasi Aritmatika</b><small>Proses perhitungan</small></button>
+ <button class="scenario" data-case="phone"><span class="emoji">📱</span><b>Membuka PIN HP</b><small>Verifikasi keamanan</small></button>
+ <button class="scenario" data-case="atm"><span class="emoji">🏧</span><b>Transaksi ATM</b><small>Penarikan uang</small></button>
+ <button class="scenario" data-case="cashier"><span class="emoji">🛒</span><b>Kasir Minimarket</b><small>Menghitung belanja</small></button>
+ <button class="scenario" data-case="route"><span class="emoji">🗺️</span><b>Pencarian Rute</b><small>Memproses perjalanan</small></button>
+ <button class="scenario" data-case="photo"><span class="emoji">📸</span><b>Menyimpan Foto di HP</b><small>Memproses dan menyimpan gambar</small></button>
+ <button class="scenario" data-case="print"><span class="emoji">🖨️</span><b>Mencetak Dokumen</b><small>Memproses perintah cetak</small></button>
+</div>
+
+<section class="panel" id="casePanel">
+ <h3 id="formTitle">Atur data perhitungan</h3>
+ <div class="fields" id="formFields"></div>
+ <div class="actions">
+  <button class="btn primary" id="startBtn">▶ Mulai Simulasi</button>
+  <button class="btn soft" id="resetBtn">↺ Atur Ulang</button>
+ </div>
+</section>
+
+<section class="lab">
+ <div class="lab-head">
+  <div><h3>🪄 Von Neumann Process Simulator</h3><p>Amati perjalanan data melalui komponen komputer.</p></div>
+  <button class="sound" id="soundBtn">🔊 Suara aktif</button>
+ </div>
+
+ <div class="sim-layout">
+  <div class="diagram-column">
+   <div class="diagram-wrap">
+    <svg class="diagram" viewBox="0 0 900 490" role="img" aria-label="Diagram arsitektur Von Neumann">
+     <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+       <path d="M0 0 L8 4 L0 8" fill="none" stroke="white" stroke-width="1.5"/>
+      </marker>
+      <linearGradient id="memoryGrad"><stop stop-color="#20b5c9"/><stop offset="1" stop-color="#48d0d9"/></linearGradient>
+      <linearGradient id="cuGrad"><stop stop-color="#ff9b31"/><stop offset="1" stop-color="#ffc06c"/></linearGradient>
+      <linearGradient id="regGrad"><stop stop-color="#f5bd35"/><stop offset="1" stop-color="#ffe27d"/></linearGradient>
+      <linearGradient id="aluGrad"><stop stop-color="#f5a43b"/><stop offset="1" stop-color="#ffce6b"/></linearGradient>
+     </defs>
+
+     <path id="pInput" class="route" d="M175 275 H220 V75 H350"/>
+     <path id="pMemory" class="route" d="M480 125 V180 H375 V245"/>
+     <path id="pCU" class="route" d="M450 290 H500"/>
+     <path id="pRegAlu" class="route" d="M585 325 V355"/>
+     <path id="pAluReg" class="route" d="M585 355 V325"/>
+     <path id="pOutput" class="route" d="M670 285 H760"/>
+
+     <g class="node" id="nodeInput">
+      <rect class="base" x="15" y="235" width="160" height="85" rx="12" fill="#24b4d0"/>
+      <rect x="24" y="244" width="142" height="67" rx="8" fill="#54c9dc" opacity=".5"/>
+      <text x="35" y="278" font-size="27">⌨️</text>
+      <text x="75" y="272" fill="white" font-size="17" font-weight="800">INPUT</text>
+      <text x="75" y="292" fill="white" font-size="10">Input Device</text>
+     </g>
+
+     <g class="node" id="nodeMemory">
+      <rect class="base" x="350" y="15" width="260" height="110" rx="12" fill="url(#memoryGrad)"/>
+      <rect x="368" y="33" width="224" height="74" rx="5" fill="#fff"/>
+      <rect x="380" y="40" width="35" height="60" rx="4" fill="#a6cf71"/>
+      <rect x="387" y="48" width="21" height="10" rx="2" fill="#687b60"/>
+      <rect x="387" y="65" width="21" height="10" rx="2" fill="#687b60"/>
+      <rect x="387" y="82" width="21" height="10" rx="2" fill="#687b60"/>
+      <text x="435" y="67" class="heading">MEMORY</text>
+      <text x="435" y="87" class="sub">Main Memory</text>
+     </g>
+
+     <g>
+      <rect x="280" y="180" width="420" height="285" rx="10" fill="#765f9d" stroke="#42d6e9" stroke-width="4"/>
+      <rect x="280" y="180" width="420" height="55" rx="8" fill="#2e9db7"/>
+      <text x="305" y="215" font-size="25">🧠</text>
+      <text x="345" y="210" fill="white" font-weight="800" font-size="22">CPU</text>
+      <text x="345" y="226" fill="#e8e2ff" font-size="10">Central Processing Unit</text>
+     </g>
+
+     <g class="node" id="nodeCU">
+      <rect class="base" x="300" y="245" width="150" height="195" rx="9" fill="url(#cuGrad)"/>
+      <rect x="313" y="258" width="124" height="169" rx="4" fill="#fffaf5"/>
+      <text x="332" y="302" font-size="31">🎛️</text>
+      <text x="332" y="344" class="heading" style="font-size:27px">CU</text>
+      <text x="332" y="369" class="sub">Control Unit</text>
+      <text x="332" y="389" class="sub" style="font-size:9px">Mengatur instruksi</text>
+     </g>
+
+     <g class="node" id="nodeRegister">
+      <rect class="base" x="500" y="245" width="170" height="80" rx="9" fill="url(#regGrad)"/>
+      <rect x="513" y="257" width="144" height="56" rx="4" fill="#fffaf5"/>
+      <text x="526" y="283" font-size="22">📦</text>
+      <text x="558" y="281" class="heading" style="font-size:16px">REGISTER</text>
+      <text x="526" y="300" class="sub" style="font-size:9px">Penyimpanan sementara</text>
+     </g>
+
+     <g class="node" id="nodeALU">
+      <rect class="base" x="500" y="355" width="170" height="85" rx="9" fill="url(#aluGrad)"/>
+      <rect x="513" y="367" width="144" height="61" rx="4" fill="#fffaf5"/>
+      <text x="526" y="395" font-size="22">⚙️</text>
+      <text x="558" y="393" class="heading" style="font-size:22px">ALU</text>
+      <text x="526" y="414" class="sub" style="font-size:9px">Arithmetic Logic Unit</text>
+     </g>
+
+     <g class="node" id="nodeOutput">
+      <rect class="base" x="760" y="235" width="125" height="85" rx="12" fill="#24b4d0"/>
+      <rect x="768" y="244" width="109" height="67" rx="8" fill="#54c9dc" opacity=".5"/>
+      <text x="775" y="278" font-size="25">🖥️</text>
+      <text x="813" y="273" fill="white" font-size="15" font-weight="800">OUTPUT</text>
+      <text x="813" y="291" fill="white" font-size="9">Device</text>
+     </g>
+
+     <text id="traveller" class="traveller" x="-50" y="-50">🚗</text>
+    </svg>
+   </div>
+   <div class="diagram-note">
+    <span>↔ Data Bus</span><span>↔ Address Bus</span><span>↔ Control Bus</span>
+   </div>
+  </div>
+
+  <div class="explain-column">
+   <span class="current-label" id="currentStage">MENUNGGU SIMULASI</span>
+   <h4 id="stepTitle">Halo! Siap menjelajah? 🌷</h4>
+   <p class="narration" id="stepNarration">Pilih salah satu studi kasus, masukkan data, lalu tekan tombol Mulai Simulasi. Amati bagaimana data bergerak dari satu komponen ke komponen lainnya.</p>
+   <div class="mini-illustration" id="miniArt">💻 ✨</div>
+   <div class="explain-hint" id="stepHint">Penjelasan setiap tahap akan muncul di sini.</div>
+  </div>
+ </div>
+
+ <div class="stats">
+  <div class="stat"><small>TAHAP</small><b id="statStep">Belum dimulai</b></div>
+  <div class="stat"><small>PROSES</small><b id="statProcess">Menunggu input</b></div>
+  <div class="stat"><small>STATUS</small><b id="statStatus">Siap ✨</b></div>
+ </div>
+
+ <div class="stages" id="stageList">
+  <span>INPUT</span><span>FETCH</span><span>DECODE</span>
+  <span>EXECUTE</span><span>STORE</span><span>OUTPUT</span>
+ </div>
+
+ <div class="controls">
+  <button class="btn soft" id="prevBtn" disabled>← Sebelumnya</button>
+  <button class="btn primary" id="nextBtn" disabled>Berikutnya →</button>
+  <button class="btn peach" id="autoBtn" disabled>▶ Otomatis</button>
+  <button class="btn soft" id="pauseBtn" disabled>Ⅱ Jeda</button>
+  <div class="speed">Kecepatan <input id="speed" type="range" min="1" max="5" value="3"></div>
+ </div>
+ <div class="result" id="result"></div>
+ <div class="legend">
+  <span><i></i> Komponen aktif</span>
+  <span>🚗 Data bergerak</span>
+  <span>✨ Proses berlangsung</span>
+ </div>
+</section>
+
+<h3 class="section-title">Kenali bagian-bagian komputer 🌼</h3>
+<section class="knowledge">
+ <article><b>⌨️ Input Device</b><p>Menerima data dan instruksi dari pengguna, misalnya angka, PIN, atau pilihan perjalanan.</p></article>
+ <article><b>🗄️ Main Memory</b><p>Menyimpan data dan instruksi program yang sedang digunakan komputer.</p></article>
+ <article><b>🎛️ Control Unit</b><p>Mengambil dan menerjemahkan instruksi serta mengatur jalannya pemrosesan.</p></article>
+ <article><b>⚙️ ALU</b><p>Melakukan operasi aritmatika dan logika sesuai instruksi yang diterima.</p></article>
+ <article><b>📦 Register</b><p>Menyimpan sementara data, instruksi, dan hasil yang sedang diproses CPU.</p></article>
+ <article><b>🖥️ Output Device</b><p>Menyajikan hasil pengolahan kepada pengguna melalui layar atau perangkat keluaran lainnya.</p></article>
+</section>
+</main>
+
+<footer>VON NEUMANN LAB · Media Pembelajaran Interaktif Informatika</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let currentCase="math",steps=[],index=0,started=false;
+let sound=true,autoRunning=false,runToken=0,voices=[];
+let speechTask=Promise.resolve(),motionTask=Promise.resolve();
+
+const forms={
+ math:{title:"Atur data perhitungan",fields:[
+  {id:"a",label:"Angka pertama",value:"12",type:"number"},
+  {id:"op",label:"Operasi",type:"select",options:["+","−","×","÷"]},
+  {id:"b",label:"Angka kedua",value:"4",type:"number"}]},
+ phone:{title:"Simulasi membuka PIN HP",fields:[
+  {id:"pin",label:"Masukkan PIN HP",value:"2580",type:"password"},
+  {id:"hint",label:"PIN demo yang benar",value:"2580",type:"text",readonly:true}]},
+ atm:{title:"Simulasi transaksi ATM",fields:[
+  {id:"pin",label:"Masukkan PIN ATM",value:"1234",type:"password"},
+  {id:"amount",label:"Jumlah penarikan (Rp)",value:"150000",type:"number"},
+  {id:"balance",label:"Saldo awal (Rp)",value:"1000000",type:"number",readonly:true}]},
+ cashier:{title:"Simulasi kasir minimarket",fields:[
+  {id:"price",label:"Harga satu barang (Rp)",value:"12000",type:"number"},
+  {id:"qty",label:"Jumlah barang",value:"3",type:"number"},
+  {id:"payment",label:"Uang pembayaran (Rp)",value:"50000",type:"number"}]},
+ route:{title:"Simulasi pencarian rute",fields:[
+  {id:"origin",label:"Lokasi asal",value:"Sekolah",type:"text"},
+  {id:"destination",label:"Tujuan",value:"Perpustakaan",type:"text"},
+  {id:"transport",label:"Moda transportasi",type:"select",options:["Jalan kaki","Sepeda","Mobil","Sepeda motor"]}]},
+ photo:{title:"Simulasi menyimpan foto di HP",fields:[
+  {id:"photo",label:"Nama foto",value:"Foto_Kegiatan",type:"text"},
+  {id:"quality",label:"Kualitas foto",type:"select",options:["Standar","Tinggi","Resolusi rendah"]},
+  {id:"folder",label:"Lokasi penyimpanan",type:"select",options:["Galeri","Album Kamera","Folder Foto"]}]},
+ print:{title:"Simulasi mencetak dokumen",fields:[
+  {id:"document",label:"Nama dokumen",value:"Tugas_Informatika",type:"text"},
+  {id:"pages",label:"Jumlah halaman",value:"5",type:"number"},
+  {id:"printer",label:"Jenis printer",type:"select",options:["Printer Inkjet","Printer Laser","Printer Hitam Putih"]}]}
+};
+
+function renderForm(){
+ const f=forms[currentCase];
+ $("formTitle").textContent=f.title;
+ $("formFields").innerHTML=f.fields.map(x=>x.type==="select"
+ ?`<div class="field"><label>${x.label}</label><select id="${x.id}">${x.options.map(v=>`<option>${v}</option>`).join("")}</select></div>`
+ :`<div class="field"><label>${x.label}</label><input id="${x.id}" type="${x.type}" value="${x.value||""}" ${x.readonly?"readonly":""} ${x.type==="number"?'min="0"':''}></div>`
+ ).join("");
+}
+function val(id){return $(id).value.trim()}
+function rp(n){return "Rp"+Number(n).toLocaleString("id-ID")}
+function add(stage,title,narration,component,path,art,hint,result=""){
+ steps.push({stage,title,narration,component,path,art,hint,result});
+}
+
+function buildSteps(){
+ steps=[];
+ if(currentCase==="math"){
+  const a=Number(val("a")),b=Number(val("b")),op=val("op");
+  if(!Number.isFinite(a)||!Number.isFinite(b))throw "Masukkan kedua angka.";
+  if(op==="÷"&&b===0)throw "Angka pembagi tidak boleh nol.";
+  const r=op==="+"?a+b:op==="−"?a-b:op==="×"?a*b:a/b;
+  add("INPUT","Input menerima data perhitungan",`Pengguna memasukkan angka ${a}, angka ${b}, dan memilih operasi ${op}. Ketiga data diterima sebagai masukan untuk diproses.`,"input","pInput","⌨️ 🚗","Data masuk ke sistem.");
+  add("FETCH","CPU mengambil instruksi dari memori",`Control Unit mengambil instruksi ${a} ${op} ${b} dari memori utama. Data angka dan perintah perhitungan mulai dibaca oleh CPU.`,"memory","pMemory","🗄️ ✈️","Instruksi diambil dari memori.");
+  add("DECODE","Control Unit menerjemahkan instruksi",`Instruksi ${op} diterjemahkan. Control Unit mengatur agar data ${a} dan ${b} dikirim ke ALU untuk dihitung.`,"cu","pCU","🎛️ ✨","Instruksi diterjemahkan.");
+  add("EXECUTE","ALU melakukan perhitungan",`ALU menerima angka ${a} dan ${b}, kemudian menjalankan operasi ${op}. Hasil perhitungannya adalah ${r}.`,"alu","pRegAlu","⚙️ ➕","ALU sedang menghitung.");
+  add("STORE","Hasil disimpan sementara di register",`Hasil ${r} ditempatkan pada register CPU agar siap diteruskan ke perangkat keluaran.`,"register","pAluReg","📦 💫","Hasil masuk ke register.");
+  add("OUTPUT","Hasil ditampilkan kepada pengguna",`Komputer mengirimkan hasil ${a} ${op} ${b} = ${r} ke layar. Proses perhitungan selesai.`,"output","pOutput","🖥️ 🎉","Hasil telah ditampilkan.",`Hasil perhitungan: ${r}`);
+ }
+ if(currentCase==="phone"){
+  const pin=val("pin");if(!pin)throw "Masukkan PIN terlebih dahulu.";
+  const ok=pin==="2580";
+  add("INPUT","Pengguna memasukkan PIN",`Pengguna mengetik PIN pada layar HP. Data PIN diterima sebagai input.`,"input","pInput","📱 🚗","PIN diterima.");
+  add("FETCH","Data PIN pembanding diambil dari memori",`Sistem mengambil data PIN yang tersimpan untuk dibandingkan dengan PIN yang baru dimasukkan.`,"memory","pMemory","🗄️ ✈️","Data PIN tersimpan dibaca.");
+  add("DECODE","Control Unit mengatur proses verifikasi",`Control Unit membaca instruksi verifikasi keamanan. Kedua data PIN disiapkan untuk dibandingkan.`,"cu","pCU","🎛️ 🔍","Instruksi verifikasi diterjemahkan.");
+  add("EXECUTE","ALU membandingkan kedua data PIN",ok?"PIN yang dimasukkan sama dengan PIN tersimpan. Hasil perbandingan menunjukkan kondisi cocok.":"PIN yang dimasukkan tidak sama dengan PIN tersimpan. Hasil perbandingan menunjukkan kondisi tidak cocok.","alu","pRegAlu","⚙️ 🔐","PIN sedang diperiksa.");
+  add("STORE","Status verifikasi disimpan",`CPU menyimpan status verifikasi: ${ok?"berhasil":"gagal"}. Status ini menjadi dasar keputusan sistem berikutnya.`,"register","pAluReg","📦 💫","Status verifikasi disimpan.");
+  add("OUTPUT","Layar HP menampilkan hasil verifikasi",ok?"Layar menampilkan bahwa HP berhasil dibuka. Pengguna dapat mengakses perangkat.":"Layar menampilkan PIN salah. HP tetap terkunci dan pengguna perlu mencoba kembali.","output","pOutput","📱 🎉","Hasil verifikasi ditampilkan.",ok?"Berhasil! HP terbuka.":"PIN salah. HP tetap terkunci.");
+ }
+ if(currentCase==="atm"){
+  const pin=val("pin"),amount=Number(val("amount")),balance=1000000;
+  if(!pin||!Number.isFinite(amount)||amount<=0)throw "Periksa PIN dan jumlah penarikan.";
+  const ok=pin==="1234",multiple=amount%50000===0,enough=amount<=balance,valid=ok&&multiple&&enough;
+  add("INPUT","ATM menerima data transaksi",`Pengguna memasukkan PIN dan memilih penarikan ${rp(amount)}. Data transaksi diterima oleh sistem ATM.`,"input","pInput","🏧 🚗","Data transaksi diterima.");
+  add("FETCH","Sistem mengambil data rekening",`CPU mengambil data PIN pembanding dan informasi saldo rekening. Saldo yang tersedia adalah ${rp(balance)}.`,"memory","pMemory","🗄️ ✈️","Data rekening dibaca.");
+  add("DECODE","Control Unit memeriksa instruksi transaksi","Control Unit mengatur urutan pemeriksaan: kecocokan PIN, ketentuan kelipatan Rp50.000, dan kecukupan saldo.","cu","pCU","🎛️ 🔍","Aturan transaksi diterjemahkan.");
+  add("EXECUTE","Sistem memvalidasi dan menghitung penarikan",`Hasil pemeriksaan: PIN ${ok?"benar":"salah"}, nominal ${multiple?"sesuai":"tidak sesuai"} ketentuan, saldo ${enough?"cukup":"tidak cukup"}.`,"alu","pRegAlu","⚙️ 💰","Validasi transaksi berlangsung.");
+  add("STORE","Saldo baru disimpan",valid?`Sistem menghitung saldo baru: ${rp(balance)} dikurangi ${rp(amount)} menjadi ${rp(balance-amount)}.`:"Transaksi tidak disetujui. Saldo rekening tidak berubah.","register","pAluReg","📦 💫","Status dan saldo disimpan.");
+  add("OUTPUT","ATM menampilkan hasil transaksi",valid?`Transaksi berhasil. Silakan ambil uang ${rp(amount)}. Sisa saldo ${rp(balance-amount)}.`:"Transaksi gagal. Periksa kembali PIN, nominal penarikan, atau saldo rekening.","output","pOutput","🏧 🎉","Hasil transaksi ditampilkan.",valid?`Penarikan berhasil. Sisa saldo: ${rp(balance-amount)}.`:"Transaksi gagal. Tidak ada uang yang ditarik.");
+ }
+ if(currentCase==="cashier"){
+  const p=Number(val("price")),q=Number(val("qty")),pay=Number(val("payment"));
+  if(p<=0||q<=0||pay<0||!Number.isFinite(p+q+pay))throw "Masukkan data belanja dengan benar.";
+  const total=p*q,change=pay-total,ok=change>=0;
+  add("INPUT","Kasir menerima data barang dan pembayaran",`Kasir memasukkan harga satu barang ${rp(p)}, jumlah ${q} barang, dan uang pembayaran ${rp(pay)}.`,"input","pInput","🛒 🚗","Data belanja diterima.");
+  add("FETCH","Data harga dan instruksi transaksi diambil","CPU mengambil data harga barang dan instruksi untuk menghitung total belanja serta memeriksa pembayaran.","memory","pMemory","🗄️ ✈️","Data harga dibaca.");
+  add("DECODE","Control Unit mengatur perhitungan belanja","Control Unit menerjemahkan instruksi: kalikan harga dengan jumlah barang, lalu bandingkan total belanja dengan uang pembayaran.","cu","pCU","🎛️ 🧾","Instruksi perhitungan diterjemahkan.");
+  add("EXECUTE","ALU menghitung total dan kembalian",`ALU menghitung ${rp(p)} dikali ${q} menjadi ${rp(total)}. Pembayaran ${ok?"mencukupi":"belum mencukupi"} untuk transaksi ini.`,"alu","pRegAlu","⚙️ 🧮","Total belanja dihitung.");
+  add("STORE","Hasil transaksi disimpan sementara",ok?`Sistem menyimpan total belanja ${rp(total)} dan kembalian ${rp(change)}.`:`Sistem menyimpan total belanja ${rp(total)} dan status pembayaran kurang ${rp(-change)}.`,"register","pAluReg","📦 💫","Hasil perhitungan disimpan.");
+  add("OUTPUT","Layar kasir menampilkan hasil",ok?`Total belanja ${rp(total)}. Kembalian yang harus diberikan adalah ${rp(change)}.`:`Pembayaran kurang ${rp(-change)}. Kasir perlu menerima pembayaran tambahan.`,"output","pOutput","🛒 🎉","Informasi transaksi ditampilkan.",ok?`Transaksi selesai. Kembalian: ${rp(change)}.`:`Pembayaran kurang: ${rp(-change)}.`);
+ }
+ if(currentCase==="route"){
+  const o=val("origin"),d=val("destination"),t=val("transport");
+  if(!o||!d)throw "Masukkan lokasi asal dan tujuan.";
+  add("INPUT","Pengguna memasukkan tujuan perjalanan",`Pengguna memilih lokasi asal ${o}, tujuan ${d}, dan moda transportasi ${t}.`,"input","pInput","🗺️ 🚗","Data perjalanan diterima.");
+  add("FETCH","Data lokasi dan peta diambil dari memori",`Sistem mengambil data lokasi ${o} dan ${d}, serta instruksi pencarian rute yang tersimpan.`,"memory","pMemory","🗄️ ✈️","Data lokasi dibaca.");
+  add("DECODE","Control Unit menerjemahkan permintaan rute",`Control Unit mengatur proses pencarian jalur dengan mempertimbangkan moda transportasi ${t}.`,"cu","pCU","🎛️ 🧭","Instruksi pencarian diterjemahkan.");
+  add("EXECUTE","CPU memproses pilihan jalur",`Sistem memeriksa kemungkinan jalur berdasarkan data lokasi dan moda ${t}. Dalam simulasi konseptual ini, sistem memilih jalur contoh yang sesuai.`,"alu","pRegAlu","⚙️ 🗺️","Pilihan jalur diproses.");
+  add("STORE","Informasi rute disimpan sementara",`Informasi perjalanan dari ${o} menuju ${d} dengan ${t} disimpan sebagai hasil pemrosesan.`,"register","pAluReg","📦 💫","Informasi rute disimpan.");
+  add("OUTPUT","Rute ditampilkan pada layar",`Layar menampilkan hasil pencarian rute dari ${o} menuju ${d} menggunakan ${t}. Ini merupakan ilustrasi proses, bukan navigasi GPS sungguhan.`,"output","pOutput","🗺️ 🎉","Hasil pencarian ditampilkan.",`Rute ditemukan: ${o} → ${d} (${t}).`);
+ }
+ if(currentCase==="photo"){
+  const photo=val("photo"),quality=val("quality"),folder=val("folder");
+  if(!photo)throw "Masukkan nama foto.";
+  add("INPUT","Kamera menerima perintah mengambil foto",`Pengguna menekan tombol kamera. Sensor kamera menangkap cahaya dari objek dan mengubahnya menjadi data digital. Foto diberi nama ${photo}.`,"input","pInput","📸 ✨","Data gambar diterima.");
+  add("FETCH","Sistem mengambil pengaturan kamera",`Komputer mengambil pengaturan kualitas gambar ${quality}, format penyimpanan, dan instruksi pengolahan foto dari memori.`,"memory","pMemory","🗄️ 📷","Pengaturan kamera dibaca.");
+  add("DECODE","Control Unit mengatur pengolahan gambar",`Control Unit menerjemahkan instruksi pengolahan foto. Sistem menyiapkan data gambar untuk diproses sesuai pengaturan ${quality}.`,"cu","pCU","🎛️ 🖼️","Instruksi pengolahan gambar diterjemahkan.");
+  add("EXECUTE","CPU memproses data gambar",`CPU memproses data digital hasil tangkapan kamera, seperti warna, kecerahan, dan detail gambar. Data disiapkan menjadi berkas foto.`,"alu","pRegAlu","⚙️ 🌈","Data gambar sedang diproses.");
+  add("STORE","Foto disimpan ke memori HP",`Berkas ${photo} disimpan ke media penyimpanan HP pada lokasi ${folder}. Data foto kini tersimpan dan dapat dibuka kembali.`,"register","pAluReg","📦 💾","Data foto disimpan.");
+  add("OUTPUT","Foto ditampilkan di galeri",`Layar HP menampilkan foto ${photo} pada ${folder}. Pengguna dapat melihat hasil foto yang sudah disimpan.`,"output","pOutput","📱 🎉","Foto berhasil ditampilkan.",`Foto "${photo}" berhasil disimpan di ${folder}.`);
+ }
+ if(currentCase==="print"){
+  const doc=val("document"),pages=Number(val("pages")),printer=val("printer");
+  if(!doc||!Number.isInteger(pages)||pages<=0)throw "Periksa nama dokumen dan jumlah halaman.";
+  add("INPUT","Pengguna mengirim perintah cetak",`Pengguna memilih dokumen ${doc} yang terdiri dari ${pages} halaman, kemudian menekan tombol cetak untuk ${printer}.`,"input","pInput","🖨️ 📄","Perintah cetak diterima.");
+  add("FETCH","Komputer mengambil data dokumen",`Sistem mengambil isi dokumen ${doc} dari penyimpanan, termasuk teks, gambar, dan pengaturan halaman.`,"memory","pMemory","🗄️ 📂","Data dokumen dibaca.");
+  add("DECODE","Control Unit menerjemahkan perintah cetak",`Control Unit membaca instruksi pencetakan dan mengatur urutan halaman, ukuran kertas, serta pengiriman data ke printer.`,"cu","pCU","🎛️ 🧾","Instruksi pencetakan diterjemahkan.");
+  add("EXECUTE","CPU memproses data dokumen",`CPU menyiapkan data setiap halaman menjadi informasi yang dapat dipahami printer ${printer}. Dokumen terdiri dari ${pages} halaman.`,"alu","pRegAlu","⚙️ 🖨️","Data halaman diproses.");
+  add("STORE","Data cetak disimpan sementara",`Data cetak dan urutan ${pages} halaman disiapkan sementara sebelum diteruskan ke perangkat printer.`,"register","pAluReg","📦 💫","Data cetak disiapkan.");
+  add("OUTPUT","Printer menghasilkan dokumen cetak",`Data dikirim ke printer ${printer}. Printer menjalankan proses pencetakan dan menghasilkan dokumen ${doc} sebanyak ${pages} halaman.`,"output","pOutput","🖨️ 🎉","Hasil cetakan dihasilkan.",`Simulasi selesai: ${doc}, ${pages} halaman, ${printer}.`);
+ }
+}
+
+const nodeIds={
+ input:"nodeInput",memory:"nodeMemory",cu:"nodeCU",
+ alu:"nodeALU",register:"nodeRegister",output:"nodeOutput"
+};
+const pathIds=["pInput","pMemory","pCU","pRegAlu","pAluReg","pOutput"];
+
+function moveVehicle(pathId,duration){
+ const path=$(pathId),vehicle=$("traveller");
+ if(!path)return Promise.resolve();
+ return new Promise(resolve=>{
+  const length=path.getTotalLength();
+  const start=performance.now();
+  function frame(now){
+   const progress=Math.min((now-start)/duration,1);
+   const point=path.getPointAtLength(length*progress);
+   vehicle.setAttribute("x",point.x-12);
+   vehicle.setAttribute("y",point.y-10);
+   if(progress<1)requestAnimationFrame(frame);
+   else resolve();
+  }
+  requestAnimationFrame(frame);
+ });
+}
+
+function animateStep(s){
+ pathIds.forEach(id=>$(id).classList.remove("active"));
+ $(s.path).classList.add("active");
+ const vehicle=$("traveller");
+ vehicle.textContent=s.stage==="FETCH"?"✈️":s.stage==="STORE"?"📦":"🚗";
+ vehicle.setAttribute("x","-50");
+ vehicle.setAttribute("y","-50");
+ const duration=2100-(Number($("speed").value)-3)*300;
+ return moveVehicle(s.path,duration);
+}
+
+function speak(text,component){
+ return new Promise(resolve=>{
+  if(!sound||!("speechSynthesis" in window)){
+   setTimeout(resolve,Math.max(2500,text.length*55));
+   return;
+  }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="id-ID";u.volume=.95;
+  const styles={
+   input:[1.3,.94],memory:[1.15,.91],cu:[1.25,.94],
+   alu:[1.05,.93],register:[1.38,.91],output:[1.2,.95]
+  };
+  const [pitch,rate]=styles[component]||[1.2,.93];
+  u.pitch=pitch;u.rate=rate;
+  const voice=voices.find(x=>x.lang.toLowerCase().startsWith("id"));
+  if(voice)u.voice=voice;
+  u.onend=()=>resolve();
+  u.onerror=()=>resolve();
+  speechSynthesis.speak(u);
+ });
+}
+
+function showStep(){
+ const s=steps[index];
+ Object.values(nodeIds).forEach(id=>$(id).classList.remove("active"));
+ $(nodeIds[s.component]).classList.add("active");
+
+ $("currentStage").textContent=s.stage;
+ $("stepTitle").textContent=`${index+1}. ${s.title}`;
+ $("stepNarration").textContent=s.narration;
+ $("stepHint").textContent=s.hint;
+ $("miniArt").textContent=s.art;
+
+ $("stageList").innerHTML=steps.map((x,i)=>
+  `<span class="${i===index?"active":""}">${x.stage}</span>`
+ ).join("");
+
+ $("statStep").textContent=`${index+1} / ${steps.length}`;
+ $("statProcess").textContent=s.stage;
+ $("statStatus").textContent=index===steps.length-1?"Selesai ✓":"Berjalan";
+ $("prevBtn").disabled=index===0;
+ $("nextBtn").disabled=index===steps.length-1;
+ $("result").classList.toggle("show",index===steps.length-1);
+ if(index===steps.length-1)$("result").textContent="✨ "+s.result;
+
+ motionTask=animateStep(s);
+ speechTask=speak(s.narration,s.component);
+}
+
+function stopAuto(){
+ autoRunning=false;runToken++;
+ if("speechSynthesis" in window)speechSynthesis.cancel();
+ $("pauseBtn").disabled=true;
+ $("autoBtn").disabled=!started||index===steps.length-1;
+ $("autoBtn").textContent="▶ Otomatis";
+}
+
+async function autoPlay(){
+ if(!started||autoRunning||index>=steps.length-1)return;
+ autoRunning=true;
+ const myToken=++runToken;
+ $("autoBtn").disabled=true;
+ $("pauseBtn").disabled=false;
+ $("autoBtn").textContent="▶ Berjalan";
+
+ while(autoRunning&&myToken===runToken){
+  await Promise.all([speechTask,motionTask]);
+  if(!autoRunning||myToken!==runToken)break;
+  if(index<steps.length-1){
+   index++;
+   showStep();
+  }else break;
+ }
+ if(myToken===runToken){
+  autoRunning=false;
+  $("pauseBtn").disabled=true;
+  $("autoBtn").disabled=index===steps.length-1;
+  $("autoBtn").textContent="▶ Otomatis";
+ }
+}
+
+function start(){
+ stopAuto();
+ try{
+  buildSteps();
+  index=0;started=true;
+  $("autoBtn").disabled=false;
+  $("nextBtn").disabled=false;
+  $("prevBtn").disabled=true;
+  showStep();
+ }catch(e){alert(e)}
+}
+
+function reset(){
+ stopAuto();
+ started=false;steps=[];index=0;
+ if("speechSynthesis" in window)speechSynthesis.cancel();
+
+ Object.values(nodeIds).forEach(id=>$(id).classList.remove("active"));
+ pathIds.forEach(id=>$(id).classList.remove("active"));
+ $("traveller").setAttribute("x","-50");
+ $("traveller").setAttribute("y","-50");
+
+ $("currentStage").textContent="MENUNGGU SIMULASI";
+ $("stepTitle").textContent="Halo! Siap menjelajah? 🌷";
+ $("stepNarration").textContent="Pilih salah satu studi kasus, masukkan data, lalu tekan tombol Mulai Simulasi. Amati bagaimana data bergerak dari satu komponen ke komponen lainnya.";
+ $("stepHint").textContent="Penjelasan setiap tahap akan muncul di sini.";
+ $("miniArt").textContent="💻 ✨";
+ $("statStep").textContent="Belum dimulai";
+ $("statProcess").textContent="Menunggu input";
+ $("statStatus").textContent="Siap ✨";
+ $("stageList").innerHTML="<span>INPUT</span><span>FETCH</span><span>DECODE</span><span>EXECUTE</span><span>STORE</span><span>OUTPUT</span>";
+ $("result").classList.remove("show");
+ $("prevBtn").disabled=true;
+ $("nextBtn").disabled=true;
+ $("autoBtn").disabled=true;
+ $("pauseBtn").disabled=true;
+}
+
+function nextStep(){
+ if(index<steps.length-1){
+  stopAuto();
+  index++;
+  showStep();
+ }
+}
+function prevStep(){
+ if(index>0){
+  stopAuto();
+  index--;
+  showStep();
+ }
+
+}
+
+document.querySelectorAll(".scenario").forEach(btn=>{
+ btn.addEventListener("click",()=>{
+  currentCase=btn.dataset.case;
+  document.querySelectorAll(".scenario").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  renderForm();
+  reset();
+ });
+});
+
+$("startBtn").onclick=start;
+$("resetBtn").onclick=()=>{renderForm();reset()};
+$("nextBtn").onclick=nextStep;
+$("prevBtn").onclick=prevStep;
+$("autoBtn").onclick=autoPlay;
+$("pauseBtn").onclick=stopAuto;
+
+$("soundBtn").onclick=()=>{
+ sound=!sound;
+ $("soundBtn").textContent=sound?"🔊 Suara aktif":"🔇 Suara mati";
+ if(!sound&&"speechSynthesis" in window)speechSynthesis.cancel();
+};
+
+if("speechSynthesis" in window){
+ voices=speechSynthesis.getVoices();
+ speechSynthesis.onvoiceschanged=()=>voices=speechSynthesis.getVoices();
+}
+
+renderForm();
+</script>
+</body>
+</html>
